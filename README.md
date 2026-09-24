@@ -10,7 +10,7 @@ This project is not official and is not affiliated with the respective owners or
 
 **The current targeted Minecraft version is 1.21.1.**
 
-This port uses Fabric Loader 0.16.5, Loom 1.7.4, Gradle 8.10.2, a Java 21 target, and Fabric API 0.107.0+1.21.1.
+This port uses Fabric Loader 0.16.5, Loom 1.14-SNAPSHOT, Gradle 9.2.1, a Java 21 target, and Fabric API 0.107.0+1.21.1. Gradle runs with the JDK 25 bundled with MCreator, while generated mods target Java 21.
 
 ## Important Information
 
