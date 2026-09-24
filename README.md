@@ -1,16 +1,16 @@
-# MCreator Fabric 1.21.11 Generator
+# MCreator Fabric 1.21.1 Generator
 
 ## About
 
 This plugin is a fork of [Goldorion's Fabric 26.1.2 generator](https://mcreator.net/plugin/64512/mcreator-fabric-generator).
 
-This is a generator plugin for MCreator that adds support for creating Fabric mods for Minecraft 1.21.11.
+This is a generator plugin for MCreator that adds support for creating Fabric mods for Minecraft 1.21.1.
 
 This project is not official and is not affiliated with the respective owners or maintainers of Fabric, Minecraft, or MCreator. Do not expect official support from their communities.
 
-**The current targeted Minecraft version is 1.21.11.**
+**The current targeted Minecraft version is 1.21.1.**
 
-This 1.21.11 port uses Fabric Loader 0.18.2, Loom 1.14-SNAPSHOT (remap), Gradle 9.2.1, a Java 21 target, and Fabric API 0.141.6+1.21.11.
+This port uses Fabric Loader 0.16.5, Loom 1.7.4, Gradle 8.10.2, a Java 21 target, and Fabric API 0.107.0+1.21.1.
 
 ## Important Information
 
