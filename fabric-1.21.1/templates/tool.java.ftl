@@ -309,17 +309,17 @@ public class ${name}Item extends FishingRodItem {
 <#macro commonMethods>
 	<#if data.stayInGridWhenCrafting>
 		<#if data.damageOnCrafting && data.usageCount != 0>
-			@Override public ItemStackTemplate getCraftingRemainder(ItemStack itemstack) {
+			@Override public ItemStack getCraftingRemainder(ItemStack itemstack) {
 				ItemStack retval = new ItemStack(this);
 				retval.setDamageValue(itemstack.getDamageValue() + 1);
 				if(retval.getDamageValue() >= retval.getMaxDamage()) {
-					return null;
+					return ItemStack.EMPTY;
 				}
-				return ItemStackTemplate.fromNonEmptyStack(retval);
+				return retval;
 			}
 		<#else>
-			@Override public ItemStackTemplate getCraftingRemainder(ItemStack itemstack) {
-				return new ItemStackTemplate(this);
+			@Override public ItemStack getCraftingRemainder(ItemStack itemstack) {
+				return new ItemStack(this);
 			}
 		</#if>
 	</#if>

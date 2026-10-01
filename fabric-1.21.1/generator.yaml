@@ -26,6 +26,7 @@ import_formatter:
     FabricLoader: net.fabricmc.loader.api
     Nullable: org.jetbrains.annotations
     Codec: com.mojang.serialization
+    NbtOps: net.minecraft.nbt
     SoundEvent: net.minecraft.sounds
     Blocks: net.minecraft.world.level.block
     Items: net.minecraft.world.item
@@ -88,33 +89,27 @@ import_formatter:
     MobRenderer: net.minecraft.client.renderer.entity
     LivingEntityRenderer: net.minecraft.client.renderer.entity
     ThrownItemRenderer: net.minecraft.client.renderer.entity
-    ArmorModelSet: net.minecraft.client.renderer.entity
+    BlockEntityRenderer: net.minecraft.client.renderer.blockentity
+    BlockEntityRendererProvider: net.minecraft.client.renderer.blockentity
+    BlockEntityRenderers: net.minecraft.client.renderer.blockentity
+    BlockEntityType: net.minecraft.world.level.block.entity
+    HierarchicalModel: net.minecraft.client.model
     RenderLayer: net.minecraft.client.renderer.entity.layers
     HumanoidArmorLayer: net.minecraft.client.renderer.entity.layers
     CrossedArmsItemLayer: net.minecraft.client.renderer.entity.layers
-    LivingEntityRenderState: net.minecraft.client.renderer.entity.state
-    HumanoidRenderState: net.minecraft.client.renderer.entity.state
-    EntityRenderState: net.minecraft.client.renderer.entity.state
-    HoldingEntityRenderState: net.minecraft.client.renderer.entity.state
-    ChickenRenderState: net.minecraft.client.renderer.entity.state
-    CreeperRenderState: net.minecraft.client.renderer.entity.state
-    GhastRenderState: net.minecraft.client.renderer.entity.state
-    FelineRenderState: net.minecraft.client.renderer.entity.state
-    PiglinRenderState: net.minecraft.client.renderer.entity.state
-    SalmonRenderState: net.minecraft.client.renderer.entity.state
-    VillagerRenderState: net.minecraft.client.renderer.entity.state
-    WitchRenderState: net.minecraft.client.renderer.entity.state
-    CameraRenderState: net.minecraft.client.renderer.state
-    SubmitNodeCollector: net.minecraft.client.renderer
-    RenderTypes: net.minecraft.client.renderer.rendertype
-    RenderType: net.minecraft.client.renderer.rendertype
+    MultiBufferSource: net.minecraft.client.renderer
+    VertexConsumer: com.mojang.blaze3d.vertex
+    RenderType: net.minecraft.client.renderer
     OverlayTexture: net.minecraft.client.renderer.texture
     ModelLayers: net.minecraft.client.model.geom
     ModelPart: net.minecraft.client.model.geom
-    KeyframeAnimation: net.minecraft.client.animation
     AnimationDefinition: net.minecraft.client.animation
+    AnimationState: net.minecraft.world.entity
     Minecraft: net.minecraft.client
+    Axis: com.mojang.math
+    Mth: net.minecraft.util
     PoseStack: com.mojang.blaze3d.vertex
+    Entity: net.minecraft.world.entity
     LivingEntity: net.minecraft.world.entity
     DamageSource: net.minecraft.world.damagesource
     AttributeSupplier: net.minecraft.world.entity.ai.attributes
@@ -126,9 +121,6 @@ import_formatter:
     ItemSupplier: net.minecraft.world.entity.projectile
     GuiGraphics: net.minecraft.client.gui
     InventoryScreen: net.minecraft.client.gui.screens.inventory
-    RenderPipelines: net.minecraft.client.renderer
-    ARGB: net.minecraft.util
-    CursorTypes: com.mojang.blaze3d.platform.cursor
     ClickType: net.minecraft.world.inventory
     FabricBrewingRecipeRegistryBuilder: net.fabricmc.fabric.api.registry
     FluidRenderHandlerRegistry: net.fabricmc.fabric.api.client.render.fluid.v1
@@ -138,7 +130,6 @@ import_formatter:
     KeyBindingHelper: net.fabricmc.fabric.api.client.keybinding.v1
     ClientTickEvents: net.fabricmc.fabric.api.client.event.lifecycle.v1
     BlockRenderLayerMap: net.fabricmc.fabric.api.client.rendering.v1
-    ChunkSectionLayer: net.minecraft.client.renderer.chunk
     EntityModelLayerRegistry: net.fabricmc.fabric.api.client.rendering.v1
     ServerEntityWorldChangeEvents: net.fabricmc.fabric.api.entity.event.v1
     ColorProviderRegistry: net.fabricmc.fabric.api.client.rendering.v1

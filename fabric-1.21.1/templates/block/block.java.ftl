@@ -63,7 +63,7 @@ import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.level.material.*;
 import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.*;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.renderer.RenderType;
 
 import java.util.*;
 import java.util.function.*;
@@ -132,11 +132,13 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	<#if data.transparencyType != "SOLID" || data.hasTransparency>
 	@Environment(EnvType.CLIENT) public static void registerRenderLayer() {
 		<#if data.transparencyType == "TRANSLUCENT">
-		BlockRenderLayerMap.putBlock(${JavaModName}Blocks.${REGISTRYNAME}, ChunkSectionLayer.TRANSLUCENT);
-		<#elseif data.transparencyType == "CUTOUT" || data.transparencyType == "CUTOUT_MIPPED" || data.hasTransparency>
-		BlockRenderLayerMap.putBlock(${JavaModName}Blocks.${REGISTRYNAME}, ChunkSectionLayer.CUTOUT);
+		BlockRenderLayerMap.INSTANCE.putBlock(${JavaModName}Blocks.${REGISTRYNAME}, RenderType.translucent());
+		<#elseif data.transparencyType == "CUTOUT_MIPPED">
+		BlockRenderLayerMap.INSTANCE.putBlock(${JavaModName}Blocks.${REGISTRYNAME}, RenderType.cutoutMipped());
+		<#elseif data.transparencyType == "CUTOUT" || data.hasTransparency>
+		BlockRenderLayerMap.INSTANCE.putBlock(${JavaModName}Blocks.${REGISTRYNAME}, RenderType.cutout());
 		<#else>
-		BlockRenderLayerMap.putBlock(${JavaModName}Blocks.${REGISTRYNAME}, ChunkSectionLayer.SOLID);
+		BlockRenderLayerMap.INSTANCE.putBlock(${JavaModName}Blocks.${REGISTRYNAME}, RenderType.solid());
 		</#if>
 	}
 
@@ -145,7 +147,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 		<#if data.rotationMode == 0 && !statesWithCustomShape?has_content><#-- shape not state dependent -->
 		private static final VoxelShape SHAPE = <@boundingBoxWithRotation data/>;
 		<#else>
-		private final Function<BlockState, VoxelShape> shapes = this.makeShapes();
+		private final com.google.common.collect.ImmutableMap<BlockState, VoxelShape> shapes = this.makeShapes();
 		</#if>
 	</#if>
 
@@ -168,11 +170,11 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 		</#if>
 		<#if data.isCustomSoundType>
 			.sound(new SoundType(1.0f, 1.0f,
-			        BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.breakSound}")),
-			        BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.stepSound}")),
-			        BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.placeSound}")),
-			        BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.hitSound}")),
-			        BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.fallSound}"))))
+			        BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.breakSound}")),
+			        BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.stepSound}")),
+			        BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.placeSound}")),
+			        BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.hitSound}")),
+			        BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.fallSound}"))))
 		<#elseif data.soundOnStep != "STONE">
 			.sound(SoundType.${data.soundOnStep})
 		</#if>
@@ -192,7 +194,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 			.requiresCorrectToolForDrops()
 		</#if>
 		<#if data.isNotColidable>
-			.noCollision()
+			.noCollission()
 		</#if>
 		<#if data.slipperiness != 0.6>
 			.friction(${data.slipperiness}f)
@@ -321,7 +323,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 
 	<#if defaultStateCustomShape || statesWithCustomShape?has_content>
 		<#if data.rotationMode != 0 || statesWithCustomShape?has_content>
-		private Function<BlockState, VoxelShape> makeShapes() {
+			private com.google.common.collect.ImmutableMap<BlockState, VoxelShape> makeShapes() {
 			return this.getShapeForEachState(state -> {
 				<#list statesWithCustomShape as state>
 					<#if !state?is_first>else </#if>if (
@@ -356,7 +358,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 			<#if data.rotationMode == 0 && !statesWithCustomShape?has_content><#-- shape not state dependent -->
 			return SHAPE<#if offset>.move(state.getOffset(pos))</#if>;
 			<#else><#-- shape is state dependent -->
-			return shapes.apply(state)<#if offset>.move(state.getOffset(pos))</#if>;
+			return shapes.get(state)<#if offset>.move(state.getOffset(pos))</#if>;
 			</#if>
 		}
 	</#if>
@@ -381,15 +383,15 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 
 	<#if data.hasCustomOpacity>
 		<#if (!data.blockBase?has_content || data.blockBase == "Leaves") && data.lightOpacity == 0>
-		@Override public boolean propagatesSkylightDown(BlockState state) {
+		@Override public boolean propagatesSkylightDown(BlockState state, BlockGetter world, BlockPos pos) {
 			return <#if data.isWaterloggable>state.getFluidState().isEmpty()<#else>true</#if>;
 		}
 		</#if>
 
 		<#if !data.blockBase?has_content || data.blockBase == "Leaves" || data.lightOpacity != 15>
-		@Override public int getLightBlock(BlockState state) {
+		@Override public int getLightBlock(BlockState state, BlockGetter world, BlockPos pos) {
 			<#if data.isWaterloggable && data.lightOpacity == 0> <#-- Prevent fully transparent blocks from overriding water opacity -->
-				return propagatesSkylightDown(state) ? 0 : 1;
+				return propagatesSkylightDown(state, world, pos) ? 0 : 1;
 			<#else>
 				return ${data.lightOpacity};
 			</#if>
@@ -678,8 +680,10 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 		}
 
 		<#if data.inventoryDropWhenDestroyed>
-		@Override protected void affectNeighborsAfterRemoval(BlockState blockstate, ServerLevel world, BlockPos blockpos, boolean flag) {
-			Containers.updateNeighboursAfterDestroy(blockstate, world, blockpos);
+		@Override protected void onRemove(BlockState blockstate, Level world, BlockPos blockpos, BlockState newState, boolean moved) {
+			if (!blockstate.is(newState.getBlock()))
+				Containers.dropContentsOnDestroy(blockstate, newState, world, blockpos);
+			super.onRemove(blockstate, world, blockpos, newState, moved);
 		}
 		</#if>
 
@@ -688,7 +692,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 			return true;
 		}
 
-		@Override public int getAnalogOutputSignal(BlockState blockState, Level world, BlockPos pos, Direction direction) {
+		@Override public int getAnalogOutputSignal(BlockState blockState, Level world, BlockPos pos) {
 			BlockEntity tileentity = world.getBlockEntity(pos);
 			if (tileentity instanceof ${name}BlockEntity be)
 				return AbstractContainerMenu.getRedstoneSignalFromContainer(be);

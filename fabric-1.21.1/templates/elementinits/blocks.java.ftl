@@ -103,12 +103,15 @@ public class ${JavaModName}Blocks {
 	// End of user code block custom blocks
 
 	private static <B extends Block> B register(String name, Function<BlockBehaviour.Properties, B> supplier) {
-		return (B) Blocks.register(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name)), (Function<BlockBehaviour.Properties, Block>) supplier, BlockBehaviour.Properties.of());
+		return Registry.register(BuiltInRegistries.BLOCK, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name), supplier.apply(BlockBehaviour.Properties.of()));
 	}
 
 	public static void clientLoad() {
 		<#list blocks as block>
 			<#if block.getModElement().getTypeString() == "block">
+				<#if block.renderType() == 4>
+				${block.getModElement().getName()}Renderer.registerBlockEntityRenderers();
+				</#if>
 				<#if block.transparencyType != "SOLID" || block.hasTransparency>
 				${block.getModElement().getName()}Block.registerRenderLayer();
 				</#if>

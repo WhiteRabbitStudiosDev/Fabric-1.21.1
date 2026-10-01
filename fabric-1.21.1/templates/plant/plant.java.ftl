@@ -37,7 +37,7 @@
 package ${package}.block;
 
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.renderer.RenderType;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
@@ -85,11 +85,11 @@ public class ${name}Block extends ${getPlantClass(data.plantType)}Block <#if int
 		</#if>
 		<#if data.isCustomSoundType>
 			.sound(new SoundType(1.0f, 1.0f, null, null, null, null, null) {
-				@Override public SoundEvent getBreakSound() { return BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.breakSound}")); }
-				@Override public SoundEvent getStepSound() { return BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.stepSound}")); }
-				@Override public SoundEvent getPlaceSound() { return BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.placeSound}")); }
-				@Override public SoundEvent getHitSound() { return BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.hitSound}")); }
-				@Override public SoundEvent getFallSound() { return BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.fallSound}")); }
+				@Override public SoundEvent getBreakSound() { return BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.breakSound}")); }
+				@Override public SoundEvent getStepSound() { return BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.stepSound}")); }
+				@Override public SoundEvent getPlaceSound() { return BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.placeSound}")); }
+				@Override public SoundEvent getHitSound() { return BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.hitSound}")); }
+				@Override public SoundEvent getFallSound() { return BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.fallSound}")); }
 			})
 		<#elseif data.soundOnStep != "STONE">
 			.sound(SoundType.${data.soundOnStep})
@@ -117,7 +117,7 @@ public class ${name}Block extends ${getPlantClass(data.plantType)}Block <#if int
 			.noOcclusion()
 			<#if data.offsetType != "NONE">.dynamicShape()</#if>
 		<#else>
-			.noCollision()
+			.noCollission()
 		</#if>
 		<#if data.isReplaceable>
 		.replaceable()
@@ -141,7 +141,7 @@ public class ${name}Block extends ${getPlantClass(data.plantType)}Block <#if int
 	}
 
 	@Environment(EnvType.CLIENT) public static void registerRenderLayer() {
-		BlockRenderLayerMap.putBlock(${JavaModName}Blocks.${REGISTRYNAME}, ChunkSectionLayer.CUTOUT);
+		BlockRenderLayerMap.INSTANCE.putBlock(${JavaModName}Blocks.${REGISTRYNAME}, RenderType.cutout());
 	}
 
 	<#if data.generateFeature>

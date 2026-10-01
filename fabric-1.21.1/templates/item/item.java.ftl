@@ -109,9 +109,6 @@ public class ${name}Item extends Item {
 				<#if data.enchantability != 0>
 				.enchantable(${data.enchantability})
 				</#if>
-				<#if data.hasCustomEatResultItem()>
-				.component(DataComponents.USE_REMAINDER, new UseRemainder(new ItemStackTemplate(${mappedMCItemToItem(data.eatResultItem)})))
-				</#if>
 		);
 	}
 	<#if data.guiBoundTo?has_content>
@@ -179,21 +176,21 @@ public class ${name}Item extends Item {
 
 	<#if data.stayInGridWhenCrafting>
 		<#if data.recipeRemainder?? && !data.recipeRemainder.isEmpty()>
-			@Override public ItemStackTemplate getCraftingRemainder(ItemStack itemstack) {
-				return new ItemStackTemplate(${mappedMCItemToItem(data.recipeRemainder)});
+			@Override public ItemStack getCraftingRemainder(ItemStack itemstack) {
+				return new ItemStack(${mappedMCItemToItem(data.recipeRemainder)});
 			}
 		<#elseif data.damageOnCrafting && data.damageCount != 0>
-			@Override public ItemStackTemplate getCraftingRemainder(ItemStack itemstack) {
+			@Override public ItemStack getCraftingRemainder(ItemStack itemstack) {
 				ItemStack retval = new ItemStack(this);
 				retval.setDamageValue(itemstack.getDamageValue() + 1);
 				if(retval.getDamageValue() >= retval.getMaxDamage()) {
-					return null;
+					return ItemStack.EMPTY;
 				}
-				return ItemStackTemplate.fromNonEmptyStack(retval);
+				return retval;
 			}
 		<#else>
-			@Override public ItemStackTemplate getCraftingRemainder(ItemStack itemstack) {
-				return new ItemStackTemplate(this);
+			@Override public ItemStack getCraftingRemainder(ItemStack itemstack) {
+				return new ItemStack(this);
 			}
 		</#if>
 	</#if>
@@ -378,34 +375,6 @@ public class ${name}Item extends Item {
 	}
 	</#if>
 
-	<#list data.customProperties.entrySet() as property>
-		<#assign propClassName = StringUtils.snakeToCamel(property.getKey())>
-		public record ${propClassName}Property() implements RangeSelectItemModelProperty {
-			public static final MapCodec<${propClassName}Property> MAP_CODEC = MapCodec.unit(new ${propClassName}Property());
-
-			@Override
-			public float get(ItemStack itemStackToRender, @Nullable ClientLevel clientWorld, @Nullable ItemOwner owner, int seed) {
-				<#if hasProcedure(property.getValue())>
-				return (float) <@procedureCode property.getValue(), {
-					"x": "owner != null ? owner.position().x() : 0",
-					"y": "owner != null ? owner.position().y() : 0",
-					"z": "owner != null ? owner.position().z() : 0",
-					"world": "owner != null ? owner.level() : clientWorld",
-					"entity": "owner.asLivingEntity()",
-					"itemstack": "itemStackToRender"
-				}, false/>;
-				<#else>
-				return 0;
-				</#if>
-			}
-
-			@Override
-			public MapCodec<${propClassName}Property> type() {
-				return MAP_CODEC;
-			}
-		}
-	</#list>
-
 }
 
 <#macro arrowShootCode>
@@ -425,7 +394,7 @@ public class ${name}Item extends Item {
 			projectile.shootFromRotation(entity, entity.getXRot(), entity.getYRot(), 0, <#if data.rangedItemChargesPower>pullingPower * </#if>3.15f, 1.0F);
 			world.addFreshEntity(projectile);
 			world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-				BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("entity.arrow.shoot")), SoundSource.PLAYERS,
+				BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("entity.arrow.shoot")), SoundSource.PLAYERS,
 				1, 1f / (world.getRandom().nextFloat() * 0.5f + 1));
 		</#if>
 

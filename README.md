@@ -12,6 +12,8 @@ This project is not official and is not affiliated with the respective owners or
 
 This port uses Fabric Loader 0.16.5, Loom 1.14-SNAPSHOT, Gradle 9.2.1, a Java 21 target, and Fabric API 0.107.0+1.21.1. Gradle runs with the JDK 25 bundled with MCreator, while generated mods target Java 21.
 
+The 1.21.1 port uses the classic registry, item, armor, entity-renderer, and block-model APIs. JSON block models, Java block models with block-entity animations, block textures, procedures, normal blocks, items, tabs, recipes, and the classic entity renderer path are supported. Features based on newer render-state/equipment APIs (custom Java item renderers, advanced armor model overrides, modern overlays, skyboxes, and custom item model properties) still require dedicated 1.21.1 implementations.
+
 ## Important Information
 
 - Make sure you are using MCreator 2026.2.

@@ -54,7 +54,7 @@ public class ${name}Block extends LiquidBlock {
 			<#if data.emissiveRendering>.hasPostProcess((bs, br, bp) -> true).emissiveRendering((bs, br, bp) -> true)</#if>
 			<#if data.luminance != 0>.lightLevel(state -> ${data.luminance})</#if>
 			<#if data.ignitedByLava>.ignitedByLava()</#if>
-			.noCollision().noLootTable().liquid().pushReaction(PushReaction.DESTROY).sound(SoundType.EMPTY).replaceable()
+			.noCollission().noLootTable().liquid().pushReaction(PushReaction.DESTROY).sound(SoundType.EMPTY).replaceable()
 		);
 
 		<#if data.flammability != 0 && data.fireSpreadSpeed != 0>
@@ -63,11 +63,11 @@ public class ${name}Block extends LiquidBlock {
 	}
 
 	<#if data.lightOpacity == 0>
-	@Override public boolean propagatesSkylightDown(BlockState state) {
+	@Override public boolean propagatesSkylightDown(BlockState state, BlockGetter blockGetter, BlockPos blockPos) {
 		return true;
 	}
 	<#elseif data.lightOpacity != 1>
-	@Override public int getLightBlock(BlockState state) {
+	@Override public int getLightBlock(BlockState state, BlockGetter blockGetter, BlockPos blockPos) {
 		return ${data.lightOpacity};
 	}
 	</#if>

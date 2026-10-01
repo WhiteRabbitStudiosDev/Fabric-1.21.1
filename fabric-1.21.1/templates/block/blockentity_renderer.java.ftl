@@ -22,7 +22,7 @@
 <#include "../procedures.java.ftl">
 package ${package}.client.renderer.block;
 
-@Environment(EnvType.CLIENT) public class ${name}Renderer implements BlockEntityRenderer<${name}BlockEntity, ${name}Renderer.CustomRenderState> {
+@Environment(EnvType.CLIENT) public class ${name}Renderer implements BlockEntityRenderer<${name}BlockEntity> {
 
 	private final CustomHierarchicalModel model;
 	private final ResourceLocation texture;
@@ -32,42 +32,36 @@ package ${package}.client.renderer.block;
 		this.texture = ResourceLocation.parse("${data.texture.format("%s:textures/block/%s")}.png");
 	}
 
-	@Override public CustomRenderState createRenderState() {
-		return new CustomRenderState();
-	}
-
-	@Override public void extractRenderState(${name}BlockEntity blockEntity, CustomRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.CrumblingOverlay breakProgress) {
-		BlockEntityRenderState.extractBase(blockEntity, state, breakProgress);
-
-		state.blockEntity = blockEntity;
-		state.blockState = blockEntity.getBlockState();
-
+	<#if data.animations?has_content>
+	private void updateRenderState(${name}BlockEntity blockEntity) {
 		int tickCount = (int) blockEntity.getLevel().getGameTime();
-		state.entityRenderState.ageInTicks = tickCount + partialTicks;
-
 		<#list data.animations as animation>
 			<#if hasProcedure(animation.condition)>
-				blockEntity.animationState${animation?index}.animateWhen(<@procedureCode animation.condition, {
-					"x": "blockEntity.getBlockPos().getX()",
-					"y": "blockEntity.getBlockPos().getY()",
-					"z": "blockEntity.getBlockPos().getZ()",
-					"blockstate": "blockEntity.getBlockState()",
-					"world": "blockEntity.getLevel()",
-					"entity": (JavaModName + ".clientPlayer()")
-				}, false/>, tickCount);
+			blockEntity.animationState${animation?index}.animateWhen(<@procedureCode animation.condition, {
+				"x": "blockEntity.getBlockPos().getX()",
+				"y": "blockEntity.getBlockPos().getY()",
+				"z": "blockEntity.getBlockPos().getZ()",
+				"blockstate": "blockEntity.getBlockState()",
+				"world": "blockEntity.getLevel()",
+				"entity": "Minecraft.getInstance().player"
+			}, false/>, tickCount);
 			<#else>
-				blockEntity.animationState${animation?index}.animateWhen(true, tickCount);
+			blockEntity.animationState${animation?index}.animateWhen(true, tickCount);
 			</#if>
 		</#list>
 	}
+	</#if>
 
-	@Override public void submit(CustomRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState cameraRenderState) {
+	@Override public void render(${name}BlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int light, int overlay) {
 		<@javacompress>
+		<#if data.animations?has_content>
+		updateRenderState(blockEntity);
+		</#if>
 		poseStack.pushPose();
 		poseStack.scale(-1, -1, 1);
 		poseStack.translate(-0.5, -0.5, 0.5);
 		<#if data.rotationMode != 0>
-			BlockState state = renderState.blockState;
+			BlockState state = blockEntity.getBlockState();
 			<#if data.rotationMode != 5>
 				Direction facing = state.getValue(${name}Block.FACING);
 				switch (facing) {
@@ -76,8 +70,8 @@ package ${package}.client.renderer.block;
 					case WEST -> poseStack.mulPose(Axis.YP.rotationDegrees(-90));
 					case SOUTH -> poseStack.mulPose(Axis.YP.rotationDegrees(180));
 					<#if data.rotationMode == 2 || data.rotationMode == 4>
-						case UP -> poseStack.mulPose(Axis.XN.rotationDegrees(90));
-						case DOWN -> poseStack.mulPose(Axis.XN.rotationDegrees(-90));
+					case UP -> poseStack.mulPose(Axis.XN.rotationDegrees(90));
+					case DOWN -> poseStack.mulPose(Axis.XN.rotationDegrees(-90));
 					</#if>
 				}
 				<#if data.enablePitch && (data.rotationMode == 1 || data.rotationMode == 3)>
@@ -85,7 +79,7 @@ package ${package}.client.renderer.block;
 					case FLOOR -> {}
 					case WALL -> poseStack.mulPose(Axis.XP.rotationDegrees(90));
 					case CEILING -> poseStack.mulPose(Axis.XP.rotationDegrees(180));
-				};
+				}
 				</#if>
 			<#else>
 				switch (state.getValue(${name}Block.AXIS)) {
@@ -96,8 +90,9 @@ package ${package}.client.renderer.block;
 			</#if>
 		</#if>
 		poseStack.translate(0, -1, 0);
-		model.setupBlockEntityAnim(renderState.blockEntity, renderState.entityRenderState);
-		submitNodeCollector.submitModel(this.model, renderState.entityRenderState, poseStack, RenderTypes.entityCutout(texture), renderState.lightCoords, OverlayTexture.NO_OVERLAY, 0, null);
+		VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityCutout(texture));
+		model.setupBlockEntityAnim(blockEntity, blockEntity.getLevel().getGameTime() + partialTick);
+		model.renderToBuffer(poseStack, vertexConsumer, light, overlay);
 		poseStack.popPose();
 		</@javacompress>
 	}
@@ -106,43 +101,37 @@ package ${package}.client.renderer.block;
 		BlockEntityRenderers.register(${JavaModName}BlockEntities.${REGISTRYNAME}, ${name}Renderer::new);
 	}
 
-	public static class CustomRenderState extends BlockEntityRenderState {
-		protected final LivingEntityRenderState entityRenderState = new LivingEntityRenderState();
-		protected ${name}BlockEntity blockEntity;
-		protected BlockState blockState;
-	}
-
 	private static final class CustomHierarchicalModel extends ${data.customModelName.split(":")[0]} {
 
-		<#list data.animations as animation>
-		private final KeyframeAnimation keyframeAnimation${animation?index};
-		</#list>
+		private final ModelPart root;
+		private final BlockEntityHierarchicalModel animator = new BlockEntityHierarchicalModel();
 
 		public CustomHierarchicalModel(ModelPart root) {
 			super(root);
-			<#list data.animations as animation>
-			this.keyframeAnimation${animation?index} = safeBake(${animation.animation});
-			</#list>
+			this.root = root;
 		}
 
-		<#-- ideally we would not do this, but many users use animations that animate parts
-			 that don't exist in their model and then complain the game is crashing -->
-		private KeyframeAnimation safeBake(AnimationDefinition source) {
-			try {
-				return source.bake(root);
-			} catch (IllegalArgumentException e) {
-				return new AnimationDefinition(0, false, Map.of()).bake(root);
+		public void setupBlockEntityAnim(${name}BlockEntity blockEntity, float ageInTicks) {
+			animator.setupBlockEntityAnim(blockEntity, ageInTicks);
+			super.setupAnim(null, 0, 0, ageInTicks, 0, 0);
+		}
+
+		private class BlockEntityHierarchicalModel extends HierarchicalModel<Entity> {
+
+			@Override public ModelPart root() {
+				return root;
+			}
+
+			@Override public void setupAnim(Entity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+			}
+
+			public void setupBlockEntityAnim(${name}BlockEntity blockEntity, float ageInTicks) {
+				root().getAllParts().forEach(ModelPart::resetPose);
+				<#list data.animations as animation>
+				animate(blockEntity.animationState${animation?index}, ${animation.animation}, ageInTicks, ${animation.speed}f);
+				</#list>
 			}
 		}
-
-		public void setupBlockEntityAnim(${name}BlockEntity blockEntity, LivingEntityRenderState state) {
-			this.root().getAllParts().forEach(ModelPart::resetPose);
-			<#list data.animations as animation>
-			this.keyframeAnimation${animation?index}.apply(blockEntity.animationState${animation?index}, state.ageInTicks, ${animation.speed}f);
-			</#list>
-			super.setupAnim(state);
-		}
-
 	}
 
 }

@@ -35,14 +35,6 @@ package ${package}.mixin;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
-    @Shadow
-    protected int lastHurtByPlayerMemoryTime;
-
-    @Shadow
-    protected boolean isAlwaysExperienceDropper() {
-        return false;
-    }
-
 	@Inject(method = "swing(Lnet/minecraft/world/InteractionHand;Z)V", at = @At("HEAD"))
 	public void swing(InteractionHand hand, boolean updateSelf, CallbackInfo ci) {
 		ItemStack stack = ((LivingEntity) (Object) this).getItemInHand(hand);
@@ -67,27 +59,6 @@ public abstract class LivingEntityMixin {
 	public void heal(float amount, CallbackInfo ci) {
 		if (!LivingEntityEvents.ENTITY_HEAL.invoker().onEntityHeal((LivingEntity) (Object) this, amount))
 			ci.cancel();
-	}
-
-	@Inject(method = "applyItemBlocking(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/damagesource/DamageSource;F)F", at = @At("HEAD"), cancellable = true)
-	public void applyItemBlocking(ServerLevel serverLevel, DamageSource damageSource, float f, CallbackInfoReturnable<Float> cir) {
-		if (!LivingEntityEvents.ENTITY_BLOCK.invoker().onEntityBlock((LivingEntity) (Object) this, damageSource, (double) f))
-			cir.cancel();
-	}
-
-	@Inject(method = "dropExperience(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/Entity;)V", at = @At("HEAD"), cancellable = true)
-	public void dropExperience(ServerLevel serverLevel, Entity entity, CallbackInfo ci) {
-	    LivingEntity self = (LivingEntity) (Object) this;
-	    if (!self.wasExperienceConsumed() && (this.isAlwaysExperienceDropper() || this.lastHurtByPlayerMemoryTime > 0 && self.shouldDropExperience() && serverLevel.getGameRules().get(GameRules.MOB_DROPS))) {
-		    if (!LivingEntityEvents.ENTITY_DROP_XP.invoker().onEntityDropXp(self, self.getLastHurtByPlayer(), (double) self.getExperienceReward(serverLevel, entity)))
-			    ci.cancel();
-	    }
-	}
-
-	@Inject(method = "causeFallDamage(DFLnet/minecraft/world/damagesource/DamageSource;)Z", at = @At("HEAD"), cancellable = true)
-	public void causeFallDamage(double d, float f, DamageSource damageSource, CallbackInfoReturnable<Boolean> cir) {
-		if (!LivingEntityEvents.ENTITY_FALL.invoker().onEntityFall((LivingEntity) (Object) this, d, (double) f))
-			cir.setReturnValue(false);
 	}
 
 	@Inject(method = "onItemPickup(Lnet/minecraft/world/entity/item/ItemEntity;)V", at = @At("HEAD"))

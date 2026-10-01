@@ -45,10 +45,6 @@ import ${package}.init.*;
 		<@javacompress>
 		<#if w.hasJavaModels() || types["specialentities"]??>${JavaModName}Models.clientLoad();</#if>
 		<#if types["base:blocks"]??>${JavaModName}Blocks.clientLoad();</#if>
-		<#if types["armors"]??>${JavaModName}ArmorModels.clientLoad();</#if>
-		<#if w.getGElementsOfType("item")?filter(e -> e.getModels()?filter(a -> a.hasCustomJAVAModel())?has_content || e.hasCustomJAVAModel())?size != 0>${JavaModName}ItemRenderers.clientLoad();</#if>
-		<#if w.getGElementsOfType("item")?filter(e -> e.getModels()?has_content)?size != 0>LegacyOverrideSelectItemModel.clientLoad();</#if>
-		<#if w.getGElementsOfType("item")?filter(e -> e.customProperties?has_content)?size != 0>${JavaModName}ItemProperties.clientLoad();</#if>
 		<#if types["base:entities"]??>${JavaModName}EntityRenderers.clientLoad();</#if>
 		<#if types["particles"]??>${JavaModName}Particles.clientLoad();</#if>
 		<#if types["fluids"]??>${JavaModName}Fluids.clientLoad();</#if>

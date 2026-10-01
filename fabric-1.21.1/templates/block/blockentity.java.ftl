@@ -49,27 +49,36 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 	}
 	</#if>
 
-	@Override public void loadAdditional(ValueInput valueInput) {
-		super.loadAdditional(valueInput);
+	@Override protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+		super.loadAdditional(tag, provider);
+		this.stacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
 
-		if (!this.tryLoadLootTable(valueInput))
-			this.stacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-
-		ContainerHelper.loadAllItems(valueInput, this.stacks);
+		if (tag.contains("LootTable", Tag.TAG_STRING)) {
+			this.lootTable = ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.parse(tag.getString("LootTable")));
+			this.lootTableSeed = tag.getLong("LootTableSeed");
+		} else {
+			ContainerHelper.loadAllItems(tag, this.stacks, provider);
+		}
 
 		<#if data.sensitiveToVibration>
-		this.vibrationData = valueInput.read("listener", VibrationSystem.Data.CODEC).orElseGet(VibrationSystem.Data::new);
+		if (tag.contains("listener"))
+			this.vibrationData = VibrationSystem.Data.CODEC.parse(NbtOps.INSTANCE, tag.get("listener")).result().orElseGet(VibrationSystem.Data::new);
 		</#if>
 	}
 
-	@Override public void saveAdditional(ValueOutput valueOutput) {
-		super.saveAdditional(valueOutput);
+	@Override protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+		super.saveAdditional(tag, provider);
 
-		if (!this.trySaveLootTable(valueOutput))
-			ContainerHelper.saveAllItems(valueOutput, this.stacks);
+		if (this.lootTable == null) {
+			ContainerHelper.saveAllItems(tag, this.stacks, provider);
+		} else {
+			tag.putString("LootTable", this.lootTable.location().toString());
+			if (this.lootTableSeed != 0)
+				tag.putLong("LootTableSeed", this.lootTableSeed);
+		}
 
 		<#if data.sensitiveToVibration>
-		valueOutput.store("listener", VibrationSystem.Data.CODEC, this.vibrationData);
+		VibrationSystem.Data.CODEC.encodeStart(NbtOps.INSTANCE, this.vibrationData).result().ifPresent(data -> tag.put("listener", data));
 		</#if>
 	}
 

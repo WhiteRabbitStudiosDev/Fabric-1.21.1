@@ -55,7 +55,7 @@ public abstract class ${name}Fluid extends FlowingFluid {
 
 		<#if data.emptySound?has_content && data.emptySound.getMappedValue()?has_content>
 		@Override public Optional<SoundEvent> getEmptySound(FluidVariant variant) {
-			return Optional.of(BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.emptySound}")));
+			return Optional.of(BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.emptySound}")));
 		}
 		</#if>
 	};

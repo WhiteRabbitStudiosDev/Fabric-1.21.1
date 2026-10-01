@@ -34,7 +34,12 @@ package ${package}.client.model;
 
 ${model
 	?replace("private final ModelPart", "public final ModelPart")
-	?replace("new ResourceLocation\\(\"modid\", \"(.*?)\"\\)", "new ResourceLocation(\"" + modid + "\", \"" + modelregistryname + "\")", "r")
+	?replace("new ResourceLocation\\(\"(.*?)\", \"(.*?)\"\\)", "ResourceLocation.fromNamespaceAndPath(\"" + modid + "\", \"" + modelregistryname + "\")", "r")
+	?replace("ResourceLocation.fromNamespaceAndPath\\(\"(.*?)\", \"(.*?)\"\\)", "ResourceLocation.fromNamespaceAndPath(\"" + modid + "\", \"" + modelregistryname + "\")", "r")
+	?replace("void setupAnim\\(Entity ", "void setupAnim(T ")
+	?replace("float red, float green, float blue, float alpha", "int color")
+	?replace("void renderToBuffer\\(PoseStack (\\w+), VertexConsumer (\\w+), int (\\w+), int (\\w+), float (\\w+), float (\\w+), float (\\w+), float (\\w+)\\)", "void renderToBuffer(PoseStack $1, VertexConsumer $2, int $3, int $4, int color)", "r")
+	?replace("([\\w.]+)\\.render\\((\\w+), (\\w+), (\\w+), (\\w+), red, green, blue, alpha\\)", "$1.render($2, $3, $4, $5, color)", "r")
 }
 
 <#-- @formatter:on -->

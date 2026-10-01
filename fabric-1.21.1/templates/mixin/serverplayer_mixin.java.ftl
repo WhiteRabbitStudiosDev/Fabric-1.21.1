@@ -23,12 +23,11 @@ package ${package}.mixin;
 
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin {
-    @Inject(method = "drop(Z)V", at = @At("HEAD"))
-    public void drop(boolean all, CallbackInfo ci) {
-        ServerPlayer self = (ServerPlayer) (Object) this;
+	@Inject(method = "drop(Z)Z", at = @At("HEAD"), cancellable = true)
+	public void drop(boolean all, CallbackInfoReturnable<Boolean> cir) {
+		ServerPlayer self = (ServerPlayer) (Object) this;
         Inventory inventory = self.getInventory();
         ItemStack itemstack = inventory.removeFromSelected(all);
-        self.containerMenu.findSlot(inventory, inventory.getSelectedSlot()).ifPresent(p_401732_ -> self.containerMenu.setRemoteSlot(p_401732_, inventory.getSelectedItem()));
 		<#list items as item>
 			<#if item.getModElement().getTypeString() == "item">
 				<#if hasProcedure(item.onDroppedByPlayer)>
@@ -37,7 +36,7 @@ public abstract class ServerPlayerMixin {
 				</#if>
 			</#if>
 		</#list>
-        self.drop(itemstack, false, true);
+		cir.setReturnValue(self.drop(itemstack, false, true) != null);
     }
 }
 <#-- @formatter:on -->
